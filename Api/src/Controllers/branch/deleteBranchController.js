@@ -2,6 +2,12 @@ const { Branch } = require("../../db");
 
 const deleteBranchController = async (branchId) => {
 	try {
+		const existingBranch = await Branch.findOne({
+			where: { branchId: branchId },
+		});
+		if (!existingBranch) {
+			throw new Error(`The branch whit the id: ${branchId} does not exist`);
+		}
 		const deleteBranch = await Branch.destroy({
 			where: { branchId: branchId },
 		});
@@ -11,4 +17,4 @@ const deleteBranchController = async (branchId) => {
 	}
 };
 
-module.exports = deleteBranchController;
+module.exports = { deleteBranchController };

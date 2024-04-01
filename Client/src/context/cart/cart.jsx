@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import { createContext, useContext, useEffect, useReducer } from "react";
-import { ADD_TO_CART, REMOVE_FROM_CART } from "./cartTypes";
+import { ADD_TO_CART, CLEAR, REMOVE_FROM_CART } from "./cartTypes";
 import Swal from "sweetalert2";
 
 const CartContext = createContext();
@@ -11,8 +11,8 @@ const initialState = {
 
 const Toast = Swal.mixin({
   toast: true,
-  position: "top-end",
   showConfirmButton: false,
+  position: "bottom-end",
   timer: 1000,
   timerProgressBar: true,
   didOpen: (toast) => {
@@ -24,34 +24,20 @@ const Toast = Swal.mixin({
 const CartReducer = (state = initialState, action) => {
   switch (action.type) {
     case ADD_TO_CART:
-      const product = action.payload;
+      Toast.fire({
+        icon: "success",
+        title: "¡Producto agregado!",
+        customClass: {
+          popup: "mySwal",
+        },
+      });
 
-      if (product.quantity > 0) {
-        Toast.fire({
-          icon: "success",
-          title: "¡Producto agregado!",
-          customClass: {
-            popup: "mySwal",
-          },
-        });
+      const updatedCartAdd = [...state.cart, action.payload];
 
-        const updatedCartAdd = [...state.cart, action.payload];
-
-        return {
-          ...state,
-          cart: updatedCartAdd,
-        };
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "No hay suficiente stock",
-          customClass: {
-            popup: "mySwal",
-          },
-        });
-
-        return state;
-      }
+      return {
+        ...state,
+        cart: updatedCartAdd,
+      };
 
     case REMOVE_FROM_CART:
       const productToRemove = action.payload;
@@ -80,6 +66,11 @@ const CartReducer = (state = initialState, action) => {
       }
 
       return state;
+
+    case CLEAR:
+      return {
+        cart: [],
+      };
 
     default: {
       return state;

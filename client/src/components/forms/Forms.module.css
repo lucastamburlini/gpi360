@@ -1,0 +1,87 @@
+.formContainer {
+  display: grid;
+  grid-template-columns: repeat(1, 100%);
+  gap: 10px;
+  width: 100%;
+
+  & .itemContainer {
+    display: flex;
+    gap: 10px;
+  }
+
+  & .item {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  & .totalProducts {
+    width: 50%;
+    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  & .totalPrice {
+    min-height: 100%;
+    width: 100%;
+    font-weight: 700;
+    border: 1px solid var(--basic-color);
+    padding: 2px 0;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-third-color);
+    border-radius: var(--radius);
+    padding: 5px;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    & .totalNumber {
+      font-size: 18px;
+    }
+  }
+
+  & label {
+    padding-bottom: 3px;
+  }
+
+  & .buttonsSection {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: end;
+    gap: 20px;
+  }
+
+  & .buttonsSectionAfip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    place-content: center;
+    text-align: center;
+    width: 100%;
+    align-items: center;
+    justify-content: end;
+    gap: 20px;
+  }
+
+  @media screen and (min-width: 768px) {
+    .totalPrice {
+      div {
+        flex-direction: row;
+        gap: 10px;
+      }
+
+      & .totalNumber {
+        font-size: 28px;
+      }
+    }
+  }
+}

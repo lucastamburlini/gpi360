@@ -281,16 +281,17 @@ const generatePDF = async ({
   }
 };
 
-const postFacturaController = async ({
-  products,
-  ptoVta,
-  cbteTipo,
-  concepto,
-  docTipo,
-  docNro,
-  importeExentoIva,
-  discount,
-}) => {
+const postFacturaAController = async (req) => {
+  const {
+    products,
+    ptoVta,
+    cbteTipo,
+    concepto,
+    docTipo,
+    docNro,
+    importeExentoIva,
+    discount,
+  } = req.body
   try {
     const { voucherData, data, urlQr } = await generateVoucher({
       products,
@@ -322,4 +323,4 @@ const postFacturaController = async ({
   }
 };
 
-module.exports = { postFacturaController };
+module.exports = { postFacturaAController };

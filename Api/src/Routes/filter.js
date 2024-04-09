@@ -1,5 +1,5 @@
-const { Router } = require('Express')
-const { getFilter } = require('../Handlers/filterHandler')
+const { Router } = require('express')
+const { getFilter } = require('../handlers/filterHandler')
 
 const router = Router()
 

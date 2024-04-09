@@ -1,8 +1,8 @@
-const { Router } = require('express');
-const { postAfip } = require('../Handlers/afipHandler');
+const { Router } = require("express");
+const { postAfip } = require("../handlers/afipHandler");
 
 const router = Router();
 
-router.post("/", postAfip)
+router.post("/", postAfip);
 
 module.exports = router;

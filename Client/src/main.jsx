@@ -6,7 +6,7 @@ import { UserProvider } from "./context/user/userContext.jsx";
 import CartProvider from "./context/cart/cart.jsx";
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:3002";
+axios.defaults.baseURL = "https://sistema-ventas-production-0108.up.railway.app"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
 	<UserProvider>

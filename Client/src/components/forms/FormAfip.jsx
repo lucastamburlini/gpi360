@@ -3,16 +3,29 @@ import style from "./Forms.module.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useCart } from "../../context/cart/cart";
-import Buttons from "../buttons/buttons";
+import ButtonOne from "../buttons/ButtonOne/ButtonOne.jsx";
+import Spinner from "../spinner/Spinner.jsx";
+
+// TODO emitir sin factura (emite un ticket común)
+// TODO chequear emitir factura a + validación errores
+// TODO emitir factura b + validación errores
+// TODO emitir factura c + validación errores
+// TODO emitir factura de credito electronica a + validación errores
+// TODO emitir factura de credito electronica b + validación errores
+// TODO emitir factura de credito electronica c + validación errores
+// TODO emitir nota de crédito a + validación errores
+// TODO emitir nota de crédito b + validación errores
+// TODO emitir nota de crédito c + validación errores
+// TODO calcular descuento (iva+exento+desc) en productos
 
 const FormAfip = () => {
+  const baseURL = import.meta.env.VITE_URL_BACKEND;
   const {
     state: { cart },
     dispatch,
   } = useCart();
   const [errors, setErrors] = useState({});
-
-  const baseURL = import.meta.env.VITE_URL_BACKEND;
+  const [loading, setLoading] = useState(false);
   const [dataAfip, setDataAfip] = useState({
     products: [],
     amount: 0,
@@ -30,8 +43,8 @@ const FormAfip = () => {
 
     cbteTipo: 0,
     concepto: 1,
-    docTipo: "99",
-    docNro: "",
+    docTipo: 80,
+    docNro: 0,
     importeExentoIva: 0,
     importeIva: 21,
 
@@ -43,16 +56,16 @@ const FormAfip = () => {
   useEffect(() => {
     const totalAmount = () => {
       const total = cart.reduce((total, product) => {
-        return total + (parseFloat(product.finalPrice) || 0);
+        return total + (parseInt(product.finalPrice) || 0);
       }, 0);
 
       const discountDecimal = dataAfip.discount / 100;
-      const totalWithDiscount = total * (1 - discountDecimal);
+      const totalWithDiscount = (total * (1 - discountDecimal) * 100) / 100;
 
       setDataAfip((prevData) => ({
         ...prevData,
         products: cart,
-        amount: parseFloat(totalWithDiscount).toFixed(2),
+        amount: Math.floor(+totalWithDiscount),
       }));
     };
 
@@ -77,110 +90,81 @@ const FormAfip = () => {
     dataAfip.importeIva,
   ]);
 
-  const showTotalAmount = () => {
-    const total = cart
-      .reduce((total, product) => {
-        return total + (parseFloat(product.finalPrice) || 0);
-      }, 0)
-      .toFixed(2);
-
-    return total;
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
 
     try {
       if (!Array.isArray(cart) || cart.length === 0) {
         throw new Error("El carrito está vacío o no es un array válido");
       }
 
-      const discountPercentage = parseFloat(dataAfip.discount) / 100;
+      const response = await axios.post(`${baseURL}/afip`, dataAfip);
+      console.log("response", response);
 
-      const updateDataAfip = {
-        ...dataAfip,
-        discount: discountPercentage,
-      };
+      if (dataAfip.cbteTipo !== 0) {
+        const pdfUrl = response.data.afipInvoice.generatedPDF.file;
+        window.open(pdfUrl);
+      } else {
+        const pdfData = response.data.afipInvoice.pdfFile.data;
+        const blob = new Blob([new Uint8Array(pdfData)], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(blob);
+        window.open(pdfUrl);
+      }
 
-      const response = await axios.post(`${baseURL}/afip`, updateDataAfip);
       dispatch({ type: "CLEAR" });
-
+      setLoading(false);
       return response;
     } catch (error) {
       console.error("Error processing the purchase:", error);
+      setLoading(false);
     }
   };
 
   const handleFormValue = (event) => {
     const { name, value } = event.target;
-    const parsedValue = name === "cbteTipo" ? parseInt(value) : value;
+    let importeIva = dataAfip.importeIva;
+
+    switch (parseInt(value)) {
+      case 0: // Sin factura
+        importeIva = 0;
+        break;
+      case 1: // Factura A
+      case 201: // Factura de Crédito electrónica A
+      case 6: // Factura B
+      case 206: // Factura de Crédito electrónica B
+      case 11: // Factura C
+      case 211: // Factura de Crédito electrónica C
+        importeIva = 21;
+        break;
+      case 3: // Nota de Crédito A
+      case 8: // Nota de Crédito B
+      case 13: // Nota de Crédito C
+        importeIva = 0;
+        break;
+      default:
+        importeIva = 0;
+        break;
+    }
+
+    const parseValue =
+      name === "cbteTipo" ||
+      name === "importeExentoIva" ||
+      name === "docTipo" ||
+      name === "discount" ||
+      name === "docNro"
+        ? parseInt(value)
+        : value;
+
     setDataAfip((prevData) => ({
       ...prevData,
-      [name]: parsedValue,
+      [name]: parseValue,
+      importeIva: importeIva,
     }));
   };
 
-  let additionalFields = null;
-  if (
-    dataAfip.cbteTipo === 1 ||
-    dataAfip.cbteTipo === 6 ||
-    dataAfip.cbteTipo === 201 ||
-    dataAfip.cbteTipo === 206 ||
-    dataAfip.cbteTipo === 3 ||
-    dataAfip.cbteTipo === 8
-  ) {
-    additionalFields = (
-      <div className={style.itemContainer}>
-        <div className={style.item}>
-          <label for="concepto">Concepto</label>
-          <select name="concepto" id="concepto" onChange={handleFormValue}>
-            <option value="1">Productos</option>
-            <option value="2">Servicios</option>
-            <option value="3">Productos y Servicios</option>
-          </select>
-        </div>
-
-        <div className={style.item}>
-          <label for="importeExentoIva">Imp. Exento IVA</label>
-          <input
-            type="number"
-            name="importeExentoIva"
-            id="importeExentoIva"
-            onChange={handleFormValue}
-          />
-        </div>
-
-        <div className={style.item}>
-          <label for="importeIva">Importe IVA</label>
-          <input
-            type="number"
-            name="importeIva"
-            id="importeIva"
-            onChange={handleFormValue}
-            value={dataAfip.importeIva}
-          />
-        </div>
-
-        <div className={style.item}>
-          <label for="discount">Desc. (%)</label>
-          <input
-            type="number"
-            name="discount"
-            id="discount"
-            placeholder="Ingrese el descuento"
-            onChange={handleFormValue}
-            min="0"
-            max="100"
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={handleSubmit} className={style.formContainer}>
-      {/* Document Details */}
-
       <div className={style.itemContainer}>
         <div className={style.item}>
           <label for="docTipo">Tipo de documento</label>
@@ -196,9 +180,8 @@ const FormAfip = () => {
             <option value="99">Consumidor Final</option>
           </select>
         </div>
-
         <div className={style.item}>
-          <label for="docNro">Número de documento</label>
+          <label for="docNro">Número</label>
           <input
             type="text"
             name="docNro"
@@ -206,9 +189,12 @@ const FormAfip = () => {
             onChange={handleFormValue}
           />
         </div>
-      </div>
 
-      {/* Payment Details */}
+        <div className={style.item}>
+          <label for="docNro">Cliente</label>
+          <input type="text" name="" id="" disabled />
+        </div>
+      </div>
 
       <div className={style.itemContainer}>
         <div className={style.item}>
@@ -234,71 +220,110 @@ const FormAfip = () => {
             onChange={handleFormValue}
             value={dataAfip.cbteTipo}
           >
-            <option value={0}>Sin factura</option>
-            <option value={1}>Factura A</option>
-            <option value={6}>Factura B</option>
-            <option value={11}>Factura C</option>
-            <option value={201}>Factura de Crédito electrónica A</option>
-            <option value={206}>Factura de Crédito electrónica B</option>
-            <option value={211}>Factura de Crédito electrónica C</option>
-            <option value={3}>Nota de Crédito A</option>
-            <option value={8}>Nota de Crédito B</option>
-            <option value={13}>Nota de Crédito C</option>
+            <option value={"0"}>Sin factura</option>
+            <option value={"1"}>Factura A</option>
+            <option value={"6"}>Factura B</option>
+            <option value={"11"}>Factura C</option>
+            {/*   <option value={"201"}>Factura de Crédito electrónica A</option>
+            <option value={"206"}>Factura de Crédito electrónica B</option>
+            <option value={"211"}>Factura de Crédito electrónica C</option>
+            <option value={"3"}>Nota de Crédito A</option>
+            <option value={"8"}>Nota de Crédito B</option>
+            <option value={"13"}>Nota de Crédito C</option> */}
           </select>
         </div>
       </div>
 
-      {/* Invoice Type and Details */}
+      {dataAfip.cbteTipo === 1 ||
+      dataAfip.cbteTipo === 6 ||
+      dataAfip.cbteTipo === 201 ||
+      dataAfip.cbteTipo === 206 ||
+      dataAfip.cbteTipo === 3 ||
+      dataAfip.cbteTipo === 8 ? (
+        <div className={style.itemContainer}>
+          <div className={style.item}>
+            <label for="concepto">Concepto</label>
+            <select name="concepto" id="concepto" onChange={handleFormValue}>
+              <option value="1">Productos</option>
+              <option value="2">Servicios</option>
+              <option value="3">Productos y Servicios</option>
+            </select>
+          </div>
 
-      {additionalFields}
+          <div className={style.item}>
+            <label for="importeExentoIva">Imp. Exento IVA</label>
+            <input
+              type="number"
+              name="importeExentoIva"
+              id="importeExentoIva"
+              onChange={handleFormValue}
+            />
+          </div>
 
-      {/* Amount */}
+          <div className={style.item}>
+            <label for="importeIva">Importe IVA</label>
+            <input
+              type="number"
+              name="importeIva"
+              id="importeIva"
+              onChange={handleFormValue}
+              value={dataAfip.importeIva}
+            />
+          </div>
+        </div>
+      ) : (
+        ""
+      )}
 
       <div className={style.itemContainer}>
         <div className={style.item}>
-          <span>Sin descuento</span>
-          <span>$ {showTotalAmount()}</span>
+          <label for="discount">Desc. (%)</label>
+          <input
+            type="number"
+            name="discount"
+            id="discount"
+            placeholder="Ingrese el descuento"
+            onChange={handleFormValue}
+            min="0"
+            max="100"
+          />
         </div>
-
         <div className={style.item}>
-          <span>Con descuento</span>
-          <span>$ {showTotalAmount()}</span>
-        </div>
-
-        <div className={style.item}>
-          <span>Monto IVA</span>
-          <span>$ {showTotalAmount()}</span>
-        </div>
-      </div>
-
-      {/* Total to Pay */}
-
-      <div className={style.itemContainer}>
-        <div className={style.totalProducts}>
-          <p>
-            {cart.length === 0
-              ? "Actualmente no tienes productos seleccionados."
-              : `Actualmente tienes ${cart.length} artículo${
+          <div className={style.totalPrice}>
+            {cart.length === 0 ? (
+              <p>Actualmente no tienes productos seleccionados. </p>
+            ) : (
+              <div>
+                <p>{`Total a pagar por ${cart.length} artículo${
                   cart.length !== 1 ? "s" : ""
-                } en tu selección.`}
-          </p>
-        </div>
-        <div className={style.totalPrice}>
-          <p>Total a pagar</p>
-          <p className={style.totalNumber}>$ {dataAfip.amount}</p>
+                }:`}</p>
+                <p>
+                  {dataAfip.cbteTipo !== 0 ? (
+                    <span className={style.totalNumber}>
+                      $ {Math.floor(dataAfip.amount * 1.21)}
+                    </span>
+                  ) : (
+                    <span className={style.totalNumber}>
+                      $ {Math.floor(dataAfip.amount)}
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+          </div>{" "}
         </div>
       </div>
 
-      <div className={style.itemContainer}>
-{/*         <div className={style.item}>
-          <Buttons type="" text="Cancelar" onClick={""} />
-        </div>
-        <div className={style.item}>
-          <Buttons type="" text="Pendiente" onClick={""} />
-        </div>
- */}        <div className={style.item}>
-          <Buttons type="submit" text="Vender" onClick={handleSubmit} />
-        </div>
+      <div className={style.buttonsSectionAfip}>
+        <ButtonOne type="" text="Cancelar" onClick={""} />
+
+        <ButtonOne type="" text="Pendiente" onClick={""} />
+
+        {loading ? (
+          <Spinner />
+        ) : (
+          <ButtonOne type="submit" text="Vender" onClick={handleSubmit} />
+        )}
       </div>
     </form>
   );

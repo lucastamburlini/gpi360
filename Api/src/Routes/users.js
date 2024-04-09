@@ -1,12 +1,12 @@
 const { Router } = require("express");
 const {
-	getUser,
-	getUsers,
-	getUserByEmailAndPassword,
-	postUser,
-	putUser,
-	deleteUser,
-} = require("../Handlers/userHandler");
+  getUser,
+  getUsers,
+  getUserByEmailAndPassword,
+  postUser,
+  putUser,
+  deleteUser,
+} = require("../handlers/userHandler");
 
 const router = Router();
 

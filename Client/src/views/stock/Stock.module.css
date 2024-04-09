@@ -1,8 +1,8 @@
 .stockContainer {
   width: 90dvw;
-  min-height: 100dvh;
+  min-height: 90dvh;
   max-width: 1024px;
-  margin: auto;
+  margin: 0 auto 50px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -43,6 +43,15 @@
       flex-direction: column;
       width: 100%;
       gap: 10px;
+
+      & li{
+        cursor: pointer;
+      }
+
+      & .selected, li:hover {
+        color: var(--primary-color);
+        border-radius: var(--radius);
+      }
     }
   }
 

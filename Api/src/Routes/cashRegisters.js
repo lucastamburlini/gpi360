@@ -5,7 +5,7 @@ const {
 	postCashRegister,
 	putCashRegister,
 	deleteCashRegister,
-} = require("../Handlers/cashRegisterHandler");
+} = require("../handlers/cashRegisterHandler");
 const router = Router();
 
 router.get("/:id", getCashRegister);

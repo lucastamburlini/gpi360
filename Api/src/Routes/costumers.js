@@ -5,7 +5,7 @@ const {
 	postCostumer,
 	putCostumer,
 	deleteCostumer,
-} = require("../Handlers/costumerHandler");
+} = require("../handlers/costumerHandler");
 const router = Router();
 
 router.get("/:id", getCostumer);

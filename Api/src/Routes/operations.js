@@ -5,7 +5,7 @@ const {
 	postOperation,
 	putOperation,
 	deleteOperation,
-} = require("../Handlers/operationsHandler");
+} = require("../handlers/operationsHandler");
 
 const router = Router();
 

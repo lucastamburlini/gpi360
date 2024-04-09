@@ -5,7 +5,7 @@ const {
 	postBranch,
 	putBranch,
 	deleteBranch,
-} = require("../Handlers/branchHandler");
+} = require("../handlers/branchHandler");
 const router = Router();
 
 router.get("/:id", getBranch);

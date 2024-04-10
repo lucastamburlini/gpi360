@@ -19,7 +19,7 @@ import Spinner from "../spinner/Spinner.jsx";
 // TODO calcular descuento (iva+exento+desc) en productos
 
 const FormAfip = () => {
-  const baseURL = import.meta.env.VITE_URL_BACKEND;
+  const URL = import.meta.env.VITE_URL_BACKEND;
   const {
     state: { cart },
     dispatch,
@@ -99,7 +99,7 @@ const FormAfip = () => {
         throw new Error("El carrito está vacío o no es un array válido");
       }
 
-      const response = await axios.post(`${baseURL}/afip`, dataAfip);
+      const response = await axios.post(`${URL}/afip`, dataAfip);
       console.log("response", response);
 
       if (dataAfip.cbteTipo !== 0) {

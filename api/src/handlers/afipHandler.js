@@ -1,7 +1,5 @@
 const { generateTicket } = require("../controllers/afip/generateTicket.js");
-const {
-    postFacturaAController,
-} = require("../controllers/afip/postFacturaAController");
+const { postFacturaAController } = require("../controllers/afip/postFacturaAController.js");
 const {
   editProductStockController,
 } = require("../controllers/products/putProductsControllers.js");
@@ -14,6 +12,7 @@ const postAfip = async (req, res) => {
     switch (cbteTipo) {
       case 1:
         afipInvoice = await postFacturaAController(req);
+        break;
       default:
         afipInvoice = await generateTicket(req);
     }

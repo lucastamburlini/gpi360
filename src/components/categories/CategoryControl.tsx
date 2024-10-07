@@ -116,7 +116,7 @@ export default function CategoriesControl({
           ?.name || "Sin categoría",
     })),
   ];
-
+  
   return (
     <div>
       <div className="flex w-full border rounded-md bg-background flex-1 items-center gap-2 my-4">
@@ -130,15 +130,14 @@ export default function CategoriesControl({
         <SearchIcon className="text-muted-foreground size-5 mr-4" />
       </div>
 
-      <ScrollArea className="h-[400px] w-full">
-        <div className="w-full overflow-x-auto">
+      <ScrollArea className="h-[400px]">
           <Table>
             <TableCaption>Lista de tus categorías y subcategorías</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Descripción</TableHead>
+                <TableHead className="hidden sm:block">Descripción</TableHead>
                 <TableHead>Acción</TableHead>
               </TableRow>
             </TableHeader>
@@ -161,7 +160,7 @@ export default function CategoriesControl({
                         item.name
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="text-muted-foreground text-xs hidden sm:block">
                       {item.description || "Sin descripción"}
                     </TableCell>
                     <TableCell>
@@ -178,11 +177,11 @@ export default function CategoriesControl({
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              {`¿Estás seguro de que quieres eliminar esta ${item.type}?`}
+                              {`¿Estás seguro de que quieres eliminar esta ${item.type === "category" ? "Categoría" : "Subcategoría"}?`}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                               Esta acción no puede deshacerse. Esto eliminará la{" "}
-                              {item.type}.
+                              {item.type === "category" ? "Categoría" : "Subcategoría"}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -207,7 +206,7 @@ export default function CategoriesControl({
               )}
             </TableBody>
           </Table>
-        </div>
+              
         <ScrollBar orientation="horizontal" className="flex" />
         <ScrollBar orientation="vertical" className="flex" />
       </ScrollArea>
